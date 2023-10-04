@@ -29,7 +29,6 @@ public class Enemy : MonoBehaviour
         Vector3 targetPosition;
         float speed;
 
-
         if (ballInRange)
         {
             targetPosition = ball.position;
@@ -41,7 +40,7 @@ public class Enemy : MonoBehaviour
             speed = defenseSpeed;
         }
 
-
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+        var finalPosition = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+        GetComponent<Rigidbody2D>().MovePosition(finalPosition);
     }
 }

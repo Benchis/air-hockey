@@ -4,21 +4,16 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public float maxSpeed = 50;
+
+    private void Update()
     {
-        
-    }
+        var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePos.z = 0;
 
-    // Update is called once per frame
-    void Update()
-    {
-        var pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        pos.z = 0;
+        if (mousePos.x > 0) mousePos.x = 0; // clamp x to 0
 
-        if (pos.x > 0) pos.x = 0;
-
-        
-        GetComponent<Rigidbody2D>().MovePosition(pos);
+        var finalPosition = Vector3.MoveTowards(transform.position, mousePos, maxSpeed * Time.deltaTime);
+        GetComponent<Rigidbody2D>().MovePosition(finalPosition);
     }
 }
