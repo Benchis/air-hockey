@@ -1,34 +1,66 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using System;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
+
 public class Ball : MonoBehaviour
 {
-
     public TMP_Text playerScoreText;
     public TMP_Text enemyScoreText;
-    public AudioClip pipe;
-    public AudioClip perfect;
+    public TMP_Text goal;
 
     int playerScore;
     int enemyScore;
 
     public float maxSpeed = 50;
 
+    public AudioClip goalSound;
+    public AudioClip hitSound;
+    AudioSource source;
+
+    public bool shouldReset;
+    public float resetTimer;
+
+    public Transform deathPoint;
+    Vector3 respawnPoint;
+
+    void Start()
+    {
+        source = GetComponent<AudioSource>();
+    }
+
     private void Update()
     {
-        var currentSpeed = GetComponent<Rigidbody2D>().velocity.magnitude;
-        print(currentSpeed);
-        if (currentSpeed > maxSpeed)
+        var distanceToCenter = Vector3.Distance(Vector3.zero, transform.position);
+        if (distanceToCenter > 10)
         {
-            GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity.normalized * maxSpeed;
+            transform.position = Vector3.zero;
         }
+
+
+        // reset ball after 2 seconds of goal
+        if (shouldReset)
+        {
+            resetTimer += Time.deltaTime;
+            if (resetTimer > 2f)
+            {
+                goal.GetComponent<MeshRenderer>().enabled = false;
+                transform.position = respawnPoint;
+                resetTimer = 0;
+                shouldReset = false;
+            }
+        }
+
+
+
     }
 
     void OnCollisionEnter2D(Collision2D other)
     {
-        GetComponent<AudioSource>().PlayOneShot(pipe);
-        GetComponent<AudioSource>().volume = 0.2f;
+        source.clip = hitSound;
+        
+        source.PlayOneShot(hitSound);
 
 
         if (other.gameObject.name.Contains("Goal computer"))
@@ -36,10 +68,16 @@ public class Ball : MonoBehaviour
             playerScore++;
             playerScoreText.text = playerScore.ToString();
 
-            transform.position = Vector3.right;
+
+            source.clip = goalSound;
+            source.Play();
+
+            shouldReset = true;
+            goal.GetComponent<MeshRenderer>().enabled = true;
+            transform.position = deathPoint.position;
             GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            GetComponent<AudioSource>().PlayOneShot(perfect);
-            GetComponent<AudioSource>().volume = 1;
+            respawnPoint = Vector3.right;
+
         }
 
         if (other.gameObject.name.Contains("Goal player"))
@@ -47,11 +85,20 @@ public class Ball : MonoBehaviour
             enemyScore++;
             enemyScoreText.text = enemyScore.ToString();
 
-            transform.position = Vector3.left;
-            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            GetComponent<AudioSource>().PlayOneShot(perfect);
-            GetComponent<AudioSource>().volume = 1;
 
+            source.clip = goalSound;
+            source.Play();
+
+            shouldReset = true;
+            goal.GetComponent<MeshRenderer>().enabled = true;
+            transform.position = deathPoint.position;
+            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            respawnPoint = Vector3.left;
+        }
+
+        if (playerScore >= 7 || enemyScore >= 7)
+        {
+            SceneManager.LoadScene("Menu");
         }
     }
 }
